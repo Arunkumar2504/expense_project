@@ -26,7 +26,7 @@
             margin-right: 5px;
         }
     </style>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Flatpickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -51,6 +51,8 @@
     <!-- Title -->
     <h1 class="text-4xl font-bold text-center text-blue-700">💸 Expense Tracker</h1>
 
+    <p class="text-center text-gray-600" style="text-align:100px">Track your expenses easily and efficiently.</p>
+    <hr class="my-4 border-gray-300" />
     <!-- Form Section -->
     <div class="bg-white p-6 rounded-2xl shadow-md">
         <form method="POST" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -78,9 +80,9 @@
             <div>
                 <label class="block font-semibold mb-1">Date</label>
                 <input type="text" id="datepicker" name="date"
-                       value="{{ form.initial.date|default:'' }}"
-                       class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                       placeholder="Select a date" />
+                    value="{{ form.date.value|default:'' }}"
+                    class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Select a date" />
             </div>
 
             <!-- Button -->
@@ -100,6 +102,23 @@
 
     <!-- Table Section -->
     <div class="bg-white p-4 rounded-2xl shadow-md overflow-x-auto">
+        <form method="GET" class="mb-4 flex flex-col md:flex-row items-start md:items-center gap-2">
+            <label class="font-semibold">Filter by Date:</label>
+            <input type="text" id="date_range" name="date_range"
+                class="w-full md:w-64 border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Select date range" value="{{ request.GET.date_range }}">
+            <button type="submit"
+                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+                Filter
+            </button>
+            {% if request.GET.date_range %}
+            <a href="{% url 'expense-dashboard' %}"
+               class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">
+                Clear
+            </a>
+            {% endif %}
+        </form>
+
         <table id="expense-table" class="display nowrap w-full">
             <thead>
             <tr class="bg-gray-200">
@@ -132,6 +151,10 @@
             {% endfor %}
             </tbody>
         </table>
+        <div class="mt-4">
+            <h2 class="text-xl font-bold mb-4">Monthly Expense Overview</h2>
+            <canvas id="monthlyBarChart" height="100"></canvas>
+        </div>
     </div>
 </div>
 
@@ -141,7 +164,10 @@
         dateFormat: "Y-m-d",
         allowInput: false
     });
-
+        flatpickr("#date_range", {
+        mode: "range",
+        dateFormat: "Y-m-d"
+    });
     $(document).ready(function () {
         $('#expense-table').DataTable({
             dom: 'Bfrtip',
@@ -149,6 +175,38 @@
             responsive: true
         });
     });
+    
+    const monthlyLabels = JSON.parse('{{ chart_labels_json|escapejs }}');
+    const monthlyData = JSON.parse('{{ chart_data_json|escapejs }}');
+
+
+    const ctxBar = document.getElementById('monthlyBarChart').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: monthlyLabels,
+            datasets: [{
+                label: 'Total Expenses per Month',
+                data: monthlyData,
+                backgroundColor: '#60a5fa',
+                borderRadius: 5,
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
 </script>
 
 </body>
