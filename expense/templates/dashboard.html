@@ -1,3 +1,4 @@
+{% load static %}
 {% load form_tags %}
 <!DOCTYPE html>
 <html lang="en">
@@ -9,6 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Font -->
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -42,6 +44,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <!-- Flowbite CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+
 </head>
 
 <body class="bg-gray-100 p-6 min-h-screen">
@@ -78,12 +83,19 @@
 
             <!-- Date -->
             <div>
-                <label class="block font-semibold mb-1">Date</label>
-                <input type="text" id="datepicker" name="date"
-                    value="{{ form.date.value|default:'' }}"
-                    class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Select a date" />
-            </div>
+                <label for="datepicker" class="block font-semibold mb-1">Date</label>
+                <input 
+                  type="text" 
+                  id="datepicker" 
+                  name="date" 
+                  datepicker 
+                  datepicker-format="yyyy-mm-dd"
+                  value="{{ form.initial.date|date:'Y-m-d' }}" 
+                  class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Select a date" 
+                />
+              </div>
+              
 
             <!-- Button -->
             <div class="md:col-span-2 lg:col-span-4 text-center mt-4">
@@ -157,17 +169,26 @@
         </div>
     </div>
 </div>
+<!-- Flowbite JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/datepicker.min.js"></script>
 
 <!-- Scripts -->
 <script>
-    flatpickr("#datepicker", {
-        dateFormat: "Y-m-d",
-        allowInput: false
+    // Initialize Flatpickr for date input
+    //flatpickr("#datepicker", {
+      //  dateFormat: "Y-m-d",
+        //allowInput: true,
+        //defaultDate: "{{ form.date.value|default:'' }}",
+    //});
+
+    // Initialize date range picker
+    flatpickr("#date_range", {
+    mode: "range",
+    dateFormat: "Y-m-d"
     });
-        flatpickr("#date_range", {
-        mode: "range",
-        dateFormat: "Y-m-d"
-    });
+
+
+    // Initialize DataTable
     $(document).ready(function () {
         $('#expense-table').DataTable({
             dom: 'Bfrtip',
@@ -175,11 +196,13 @@
             responsive: true
         });
     });
-    
-    const monthlyLabels = JSON.parse('{{ chart_labels_json|escapejs }}');
-    const monthlyData = JSON.parse('{{ chart_data_json|escapejs }}');
 
 
+    // Monthly Bar Chart
+    const monthlyLabels = JSON.parse("{{ chart_labels_json|escapejs }}");
+    const monthlyData = JSON.parse("{{ chart_data_json|escapejs }}");
+    console.log("Labels:", monthlyLabels);
+    console.log("Data:", monthlyData);
     const ctxBar = document.getElementById('monthlyBarChart').getContext('2d');
     new Chart(ctxBar, {
         type: 'bar',
@@ -206,6 +229,7 @@
             }
         }
     });
+
 
 </script>
 

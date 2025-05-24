@@ -1,3 +1,4 @@
+from decimal import Decimal  # Add this at the top
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import generics
@@ -36,10 +37,9 @@ def expense_dashboard(request, pk=None):
                 expenses = expenses.filter(date__range=(start_date, end_date))
                 total_amount = expenses.aggregate(
                     total=Sum('amount'))['total'] or 0
-            except:
-                pass
+            except ValueError as ve:
+                print("Invalid date range:", ve)
 
-        # Monthly totals
         monthly_data = (
             expenses
             .annotate(month=TruncMonth('date'))
@@ -47,23 +47,29 @@ def expense_dashboard(request, pk=None):
             .annotate(total=Sum('amount'))
             .order_by('month')
         )
-        chart_labels = [entry['month'].strftime(
-            '%b %Y') for entry in monthly_data]
 
-        # Convert Decimal to float here!
-        chart_data = [float(entry['total']) for entry in monthly_data]
+        chart_labels = [entry['month'].strftime(
+            '%b %Y') for entry in monthly_data if entry['month']]
+        chart_data = [float(entry['total'])
+                      for entry in monthly_data if entry['total'] is not None]
 
         if pk:
             expense = get_object_or_404(Expense, pk=pk)
-            form = ExpenseForm(request.POST or None, instance=expense)
-            if request.method == 'POST' and form.is_valid():
-                form.save()
-                return redirect('expense-dashboard')
+            if request.method == 'POST':
+                form = ExpenseForm(request.POST, instance=expense)
+                if form.is_valid():
+                    form.save()
+                    return redirect('expense-dashboard')
+            else:
+                form = ExpenseForm(instance=expense)
         else:
-            form = ExpenseForm(request.POST or None)
-            if request.method == 'POST' and form.is_valid():
-                form.save()
-                return redirect('expense-dashboard')
+            if request.method == 'POST':
+                form = ExpenseForm(request.POST)
+                if form.is_valid():
+                    form.save()
+                    return redirect('expense-dashboard')
+            else:
+                form = ExpenseForm()
 
         context = {
             'expenses': expenses,
@@ -73,8 +79,10 @@ def expense_dashboard(request, pk=None):
             'chart_labels_json': json.dumps(chart_labels),
             'chart_data_json': json.dumps(chart_data),
         }
+
     except Exception as isoex:
-        print(isoex)
+        print("Unexpected error:", isoex)
+        context = {}
 
     return render(request, 'dashboard.html', context)
 
