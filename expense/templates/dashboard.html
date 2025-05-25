@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>Expense Tracker</title>
-    
+
     <!-- TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -58,6 +58,7 @@
 
     <p class="text-center text-gray-600" style="text-align:100px">Track your expenses easily and efficiently.</p>
     <hr class="my-4 border-gray-300" />
+    
     <!-- Form Section -->
     <div class="bg-white p-6 rounded-2xl shadow-md">
         <form method="POST" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -94,8 +95,7 @@
                   class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Select a date" 
                 />
-              </div>
-              
+            </div>
 
             <!-- Button -->
             <div class="md:col-span-2 lg:col-span-4 text-center mt-4">
@@ -144,16 +144,18 @@
             <tbody>
             {% for expense in expenses %}
                 <tr>
-                    <td>{{ expense.tittle }}</td>
-                    <td>₹ {{ expense.amount }}</td>
-                    <td>{{ expense.category }}</td>
-                    <td>{{ expense.date }}</td>
-                    <td class="space-x-2">
+                    <td class="px-2 py-1 text-sm sm:text-base">{{ expense.tittle }}</td>
+                    <td class="px-2 py-1 text-sm sm:text-base">₹ {{ expense.amount }}</td>
+                    <td class="px-2 py-1 text-sm sm:text-base">{{ expense.category }}</td>
+                    <td class="px-2 py-1 text-sm sm:text-base">{{ expense.date }}</td>
+                    <td class="px-2 py-1 text-sm sm:text-base">
+                      <div class="flex flex-col sm:flex-row sm:space-x-2 space-y-1 sm:space-y-0">
                         <a href="{% url 'expense-dashboard-edit' expense.pk %}"
-                           class="text-white bg-green-600 px-3 py-1 rounded hover:bg-green-700">Edit</a>
+                           class="text-white bg-green-600 px-3 py-1 rounded hover:bg-green-700 text-center">Edit</a>
                         <a href="{% url 'delete_expense' expense.pk %}"
-                           class="text-white bg-red-600 px-3 py-1 rounded hover:bg-red-700"
+                           class="text-white bg-red-600 px-3 py-1 rounded hover:bg-red-700 text-center"
                            onclick="return confirm('Are you sure?');">Delete</a>
+                      </div>
                     </td>
                 </tr>
             {% empty %}
@@ -163,30 +165,24 @@
             {% endfor %}
             </tbody>
         </table>
+
         <div class="mt-4">
             <h2 class="text-xl font-bold mb-4">Monthly Expense Overview</h2>
             <canvas id="monthlyBarChart" height="100"></canvas>
         </div>
     </div>
 </div>
+
 <!-- Flowbite JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/datepicker.min.js"></script>
 
 <!-- Scripts -->
 <script>
-    // Initialize Flatpickr for date input
-    //flatpickr("#datepicker", {
-      //  dateFormat: "Y-m-d",
-        //allowInput: true,
-        //defaultDate: "{{ form.date.value|default:'' }}",
-    //});
-
     // Initialize date range picker
     flatpickr("#date_range", {
-    mode: "range",
-    dateFormat: "Y-m-d"
+        mode: "range",
+        dateFormat: "Y-m-d"
     });
-
 
     // Initialize DataTable
     $(document).ready(function () {
@@ -197,12 +193,9 @@
         });
     });
 
-
     // Monthly Bar Chart
     const monthlyLabels = JSON.parse("{{ chart_labels_json|escapejs }}");
     const monthlyData = JSON.parse("{{ chart_data_json|escapejs }}");
-    console.log("Labels:", monthlyLabels);
-    console.log("Data:", monthlyData);
     const ctxBar = document.getElementById('monthlyBarChart').getContext('2d');
     new Chart(ctxBar, {
         type: 'bar',
@@ -229,8 +222,6 @@
             }
         }
     });
-
-
 </script>
 
 </body>
