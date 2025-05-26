@@ -158,13 +158,13 @@
                       </div>
                     </td>
                 </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center text-gray-500 py-4 italic">No expenses found.</td>
-                </tr>
             {% endfor %}
             </tbody>
         </table>
+
+        {% if not expenses %}
+            <p class="text-center text-gray-500 py-4 italic">No expenses found.</p>
+        {% endif %}
 
         <div class="mt-4">
             <h2 class="text-xl font-bold mb-4">Monthly Expense Overview</h2>
@@ -189,7 +189,10 @@
         $('#expense-table').DataTable({
             dom: 'Bfrtip',
             buttons: ['csv', 'excel', 'pdf', 'print'],
-            responsive: true
+            responsive: true,
+            language: {
+                emptyTable: "No expenses found."
+            }
         });
     });
 
